@@ -3,28 +3,41 @@
 # We make no guarantees that this code is fit for any purpose. 
 # Visit http://www.pragmaticprogrammer.com/titles/bmsft for more book information.
 #---
-#Command line arguments
-unless ARGV.length == 2
-  puts "Need two arguments, one per inventory file" if ARGV.length != 2
-  exit
+def check_usage   # (1)
+  unless ARGV.length == 2 
+    puts "Usage: differences.rb old-inventory new-inventory"
+    exit
+  end
 end
-old_inventory = File.open(ARGV[0]).readlines.collect { |line| line.downcase }
-#puts old_inventory
-new_inventory = File.open(ARGV[1]).readlines.collect { |line| line.downcase }
-#puts new_inventory
-files_added = (new_inventory - old_inventory).length
-files_removed = (old_inventory - new_inventory).length
-common_count = (new_inventory  & old_inventory).length
 
-puts "#{files_added} files have been added:"
-puts new_inventory - old_inventory
+def boring?(line)
+  line.split('/').include?('temp') or
+    line.split('/').include?('recycler')
+end
 
-puts ""
-puts "#{files_removed} have been deleted:"
-puts old_inventory - new_inventory
+def inventory_from(filename)
+  inventory = File.open(filename)
+  downcased = inventory.collect do | line | 
+    line.chomp.downcase
+  end
+  downcased.reject do | line |
+    boring?(line)
+  end
+end
 
-puts ""
-puts "#{common_count} files did not change"
+def compare_inventory_files(old_file, new_file) # (2)
+  old_inventory = inventory_from(old_file)
+  new_inventory = inventory_from(new_file)
 
-puts ""
-puts ""
+  puts "The following files have been added:"
+  puts new_inventory - old_inventory
+
+  puts ""
+  puts "The following files have been deleted:"
+  puts old_inventory - new_inventory
+end
+
+if $0 == __FILE__ # (3)
+  check_usage 
+  compare_inventory_files(ARGV[0], ARGV[1]) 
+end
