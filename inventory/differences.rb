@@ -3,6 +3,8 @@
 # We make no guarantees that this code is fit for any purpose. 
 # Visit http://www.pragmaticprogrammer.com/titles/bmsft for more book information.
 #---
+FORBIDDEN_WORDS = %w(temp recycler)
+
 def check_usage   # (1)
   unless ARGV.length == 2 
     puts "Usage: differences.rb old-inventory new-inventory"
@@ -10,18 +12,18 @@ def check_usage   # (1)
   end
 end
 
-def boring?(line)
-  line.split('/').include?('temp') or
-    line.split('/').include?('recycler')
+def boring?(line, words)
+  split_path = line.chomp.split('/')
+  words.any? { |word| split_path.include?(word) }
 end
 
 def inventory_from(filename)
   inventory = File.open(filename)
   downcased = inventory.collect do | line | 
-    line.chomp.downcase
+    line.downcase
   end
   downcased.reject do | line |
-    boring?(line)
+    boring?(line, FORBIDDEN_WORDS)
   end
 end
 
